@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="RU">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com"  crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Ассистент университета</title>
+</head>
+
+<body>
+<img class="logo" src="images/logo.png" alt="Логотип не загрузился">
+
+<form>
+    <div class="question">
+        <input type="text" class="questionContainer" id="questionContainer" placeholder="Что вам подсказать?">
+    </div>
+    <button type="submit" class="submitButton" id="submitButton">Найти</button>
+</form>
+
+<div class="answerContainer" id="answerContainer" style="display: none;">
+    <div class="answerBox">
+        <p id="answerText">Здесь появится ответ...</p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('submitButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        const question = document.getElementById('questionContainer').value.trim();
+        const answerContainer = document.getElementById('answerContainer');
+        const answerText = document.getElementById('answerText');
+
+        // Проверка на пустой запрос
+        if (!question) {
+            answerText.textContent = 'Пожалуйста, введите вопрос!';
+            answerContainer.style.display = 'block';
+            return;
+        }
+
+        // Индикатор поиска
+        answerText.textContent = 'Ищу ответ...';
+        answerContainer.style.display = 'block';
+
+        // Запрос к Spring Boot API
+        fetch(`http://localhost:8080/search?query=${encodeURIComponent(question)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.answer) {
+                    answerText.textContent = data.answer;
+                } else {
+                    answerText.textContent = 'К сожалению, я не нашёл ответа на этот вопрос.';
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                answerText.textContent = 'Произошла ошибка при поиске ответа.';
+            });
+    });
+
+    // Сброс формы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        form.reset();
+    });
+</script>
+</body>
+</html>
