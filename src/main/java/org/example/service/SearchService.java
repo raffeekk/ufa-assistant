@@ -26,13 +26,11 @@ public class SearchService {
             FaqItem item = items.get(i);
             faqList.add(item);
             
-            // Индексация слов
             String[] words = normalize(item.getQuestion()).split("\\s+");
             for (String word : words) {
                 wordIndex.computeIfAbsent(word, k -> new HashSet<>()).add(i);
             }
-            
-            // Кэширование точных совпадений
+
             exactMatchCache.put(normalize(item.getQuestion()), item);
         }
         
@@ -56,8 +54,7 @@ public class SearchService {
         }
 
         String normalizedQuery = normalize(query);
-        
-        // Проверка точного совпадения в кэше
+
         FaqItem exactMatch = exactMatchCache.get(normalizedQuery);
         if (exactMatch != null) {
             logger.info("Найдено точное совпадение в кэше");
@@ -67,7 +64,6 @@ public class SearchService {
         String[] words = normalizedQuery.split("\\s+");
         Map<FaqItem, Double> scores = new HashMap<>();
 
-        // Используем индекс для быстрого поиска
         Set<Integer> matchingIndices = new HashSet<>();
         for (String word : words) {
             Set<Integer> indices = wordIndex.get(word);
@@ -76,7 +72,6 @@ public class SearchService {
             }
         }
 
-        // Вычисляем релевантность только для найденных индексов
         for (Integer index : matchingIndices) {
             FaqItem item = faqList.get(index);
             double score = calculateRelevance(normalizedQuery, normalize(item.getQuestion()));
